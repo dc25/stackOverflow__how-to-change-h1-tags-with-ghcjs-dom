@@ -28,7 +28,7 @@ webPage = do
   el "h1" $ text "Hello World!"
 
   -- insert a paragraph with Dynamic red blue style.
-  elDynAttr "p"  redBlueStyle $ text "This is my test document"
+  elDynAttr "p" redBlueStyle $ text "This is my test document"
 
   return ()
 
