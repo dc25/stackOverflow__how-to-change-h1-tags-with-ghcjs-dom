@@ -1,23 +1,38 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE OverloadedStrings #-} 
+{-# LANGUAGE ScopedTypeVariables #-} -- allows for local type declarations.
 import Reflex
 import Reflex.Dom
-import Data.Map
 import Data.Text
+import Data.Map
 import Data.Time.Clock (getCurrentTime)
 import Control.Monad.Trans (liftIO)
 
-
 webPage :: MonadWidget t m => m ()
 webPage = do
-  now <- liftIO getCurrentTime 
-  ticker <- tickLossy 1.0 now
-  counter <- foldDyn  (\_ n -> n+1) (0::Integer) ticker
-  let redBlue = fmap (\n -> if ((n `mod` 2) == 0) then "red" else "blue") $ counter
-  let redBlueStyle = fmap (\color -> (fromList [(pack "style",pack $ "color: " ++ color)])) redBlue
-  elDynAttr' "h1"  (constDyn $ fromList [("style","color: blue")]) $ text "Hello World!"
-  elDynAttr' "p"  redBlueStyle $ text "This is my test document"
+
+  -- ticker Event fires once per second.
+  ticker :: Event t TickInfo <- tickLossy 1.0 =<< liftIO getCurrentTime  
+
+  -- counter Dynamic increases by one every second.
+  counter :: Dynamic t Integer <- foldDyn  (\_ n -> n+1) 0 ticker
+
+  -- function to map from integer to red or blue style.
+  let chooseColor n = "style" =: pack ("color: " ++ if (n `mod` 2) == 0 then "red" else "blue")
+ 
+  -- redBlueStyle Dynamic changes each second.
+  let redBlueStyle :: Dynamic t (Map Text Text) 
+      redBlueStyle = fmap chooseColor counter
+
+  -- insert an h1 elemnt.
+  el "h1" $ text "Hello World!"
+
+  -- insert a paragraph with Dynamic red blue style.
+  elDynAttr "p"  redBlueStyle $ text "This is my test document"
+
   return ()
 
+
+css = "h1 {font-family: Helvetica;} p {font-family: Helvetica;}" 
+
 main :: IO ()
-main = mainWidgetWithCss "h1 {font-family: Helvetica;} p {font-family: Helvetica;}" webPage
+main = mainWidgetWithCss css webPage
