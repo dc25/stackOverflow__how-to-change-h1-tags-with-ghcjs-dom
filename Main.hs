@@ -2,8 +2,8 @@
 {-# LANGUAGE ScopedTypeVariables #-} -- allows for local type declarations.
 import Reflex
 import Reflex.Dom
-import Data.Text
-import Data.Map
+import Data.Text (Text, pack)
+import Data.Map (Map)
 import Data.Time.Clock (getCurrentTime)
 import Control.Monad.Trans (liftIO)
 
@@ -14,10 +14,11 @@ webPage = do
   ticker :: Event t TickInfo <- tickLossy 1.0 =<< liftIO getCurrentTime  
 
   -- counter Dynamic increases by one every second.
-  counter :: Dynamic t Integer <- foldDyn  (\_ n -> n+1) 0 ticker
+  counter :: Dynamic t Int <- foldDyn  (\_ n -> n+1) 0 ticker
 
   -- function to map from integer to red or blue style.
-  let chooseColor n = "style" =: pack ("color: " ++ if (n `mod` 2) == 0 then "red" else "blue")
+  let chooseColor :: Int -> (Map Text Text) 
+      chooseColor n = "style" =: pack ("color: " ++ if (n `mod` 2) == 0 then "red" else "blue")
  
   -- redBlueStyle Dynamic changes each second.
   let redBlueStyle :: Dynamic t (Map Text Text) 
